@@ -33,6 +33,38 @@
     void R(name) (void) { KF(release)(value);                   \
                           KF(release)(KEYBOARD__LeftShift); }
 
+/**                                       macros/KEYS__CTRL_SHIFTED/description
+ * Define the functions for a "alt+shifted" key (i.e. a key that sends
+ * a "alt" and "shift" along with the keycode)
+ *
+ * Needed by ".../lib/layout/keys.h"
+ */
+#define  KEYS__ALT_SHIFTED(name, value)                         \
+    void P(name) (void) { KF(press)(KEYBOARD__LeftShift);       \
+                          KF(press)(KEYBOARD__LeftAlt);         \
+                          KF(press)(value); }                   \
+    void R(name) (void) { KF(release)(value);                   \
+                          KF(release)(KEYBOARD__LeftAlt);       \
+                          KF(release)(KEYBOARD__LeftShift); }
+
+/**                                             macros/KEYS__HOTKEY/description
+ * Define the functions for a "ctrl+alt+gui+shifted" key (i.e. a key that sends
+ * a "ctrl", "alt", "gui" and "shift" along with the keycode)
+ *
+ * Needed by ".../lib/layout/keys.h"
+ */
+#define  KEYS__HOTKEY(name, value)                              \
+    void P(name) (void) { KF(press)(KEYBOARD__LeftShift);       \
+                          KF(press)(KEYBOARD__LeftControl);     \
+                          KF(press)(KEYBOARD__LeftAlt);         \
+                          KF(press)(KEYBOARD__LeftGUI);         \
+                          KF(press)(value); }                   \
+    void R(name) (void) { KF(release)(value);                   \
+                          KF(release)(KEYBOARD__LeftGUI);       \
+                          KF(release)(KEYBOARD__LeftAlt);       \
+                          KF(release)(KEYBOARD__LeftControl);   \
+                          KF(release)(KEYBOARD__LeftShift); }
+
 /**                                    macros/KEYS__LAYER__PUSH_POP/description
  * Define the functions for a layer push-pop key (i.e. a layer shift key).
  *
@@ -66,15 +98,36 @@
  *       #define  keys__press__lpo1l1    R(lpupo1l1)
  *       #define  keys__release__lpo1l1  KF(nop)
  */
+
+void layer_stack__push_pop_sticky(bool pressed, uint8_t layer_id) {
+    static int press_count[10] = {0};
+    if (pressed) {
+      ++press_count[layer_id];
+      if (press_count[layer_id] == 2)
+        press_count[layer_id] = 0;
+      layer_stack__push(0, layer_id, layer_id);
+    } else if (press_count[layer_id]) {
+      --press_count[layer_id];
+      layer_stack__pop_id(layer_id);
+    }
+}
+
 #define  KEYS__LAYER__PUSH_POP(ID, LAYER)                                   \
     void P(lpupo##ID##l##LAYER) (void) { layer_stack__push(0, ID, LAYER); } \
     void R(lpupo##ID##l##LAYER) (void) { layer_stack__pop_id(ID); }
+
+#define  KEYS__LAYER__PUSH_POP_LED(ID)                                   \
+    void P(lpupo##ID##l##ID) (void) { layer_stack__push(0, ID, ID); \
+                                      kb__led__on(ID); }               \
+    void R(lpupo##ID##l##ID) (void) { layer_stack__pop_id(ID); \
+                                      kb__led__off(ID); }
 
 // ----------------------------------------------------------------------------
 
 /**                                   functions/KF(2_keys_capslock)/description
  * Press the given keycode, and also press "capslock" if this is the second
  * consecutive time this function has been called with `pressed == true`.
+ * Turns it off if only one pressed.
  *
  * Meant to be used with the left and right "shift" keys.
  */
@@ -83,9 +136,9 @@ void KF(2_keys_capslock)(bool pressed, uint8_t keycode) {
     if (pressed) {
         counter++;
         KF(press)(keycode);
-    }
-    if (counter == 2 && pressed) {
-        KF(toggle_capslock)();
+        if (counter == 2 || usb__kb__read_led('C')) {
+            KF(toggle_capslock)();
+        }
     }
     if (!pressed) {
         counter--;
@@ -134,7 +187,7 @@ void KF(nop) (void) {}
 KEYS__DEFAULT( power,   KEYBOARD__Power      );
 KEYS__DEFAULT( volumeU, KEYBOARD__VolumeUp   );
 KEYS__DEFAULT( volumeD, KEYBOARD__VolumeDown );
-KEYS__DEFAULT( mute,    KEYBOARD__Mute       );
+//KEYS__DEFAULT( mute,    KEYBOARD__Mute       );
 
 
 // --- special function -------------------------------------------------------
@@ -209,16 +262,16 @@ KEYS__LAYER__PUSH_POP(0, 0);
 #define  keys__press__lpo0l0    R(lpupo0l0)
 #define  keys__release__lpo0l0  KF(nop)
 
-KEYS__LAYER__PUSH_POP(1,1);
-void P(lpu1l1) (void) { layer_stack__push(0, 1, 1); kb__led__on(1); }
+KEYS__LAYER__PUSH_POP_LED(1);
+#define  keys__press__lpu1l1    P(lpupo1l1)
 #define  keys__release__lpu1l1  KF(nop)
-void P(lpo1l1) (void) { layer_stack__pop_id(1); kb__led__off(1); }
+#define  keys__press__lpo1l1    R(lpupo1l1)
 #define  keys__release__lpo1l1  KF(nop)
 
-KEYS__LAYER__PUSH_POP(2,2);
-void P(lpu2l2) (void) { layer_stack__push(0, 2, 2); kb__led__on(2); }
+KEYS__LAYER__PUSH_POP_LED(2);
+#define  keys__press__lpu2l2    P(lpupo2l2)
 #define  keys__release__lpu2l2  KF(nop)
-void P(lpo2l2) (void) { layer_stack__pop_id(2); kb__led__off(2); }
+#define  keys__press__lpo2l2    R(lpupo2l2)
 #define  keys__release__lpo2l2  KF(nop)
 
 KEYS__LAYER__PUSH_POP(3, 3);
