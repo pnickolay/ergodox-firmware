@@ -54,6 +54,7 @@ KEYS__FHOTKEY( 7 );
 KEYS__FHOTKEY( 11 );
 KEYS__FHOTKEY( 12 );
 KEYS__HOTKEY( h13, KEYBOARD__Pause );
+KEYS__HOTKEY( h14, KEYBOARD__Application );
 
 KEYS__DEFAULT( lock, KEYBOARD__Application );
 
@@ -63,6 +64,7 @@ KEYS__HOTKEY( mute, KEYBOARD__F8 );
 
 KEYS__ALT_SHIFTED( play, KEYBOARD__1_Exclamation );
 KEYS__ALT_SHIFTED( skip, KEYBOARD__2_At );
+KEYS__ALT_SHIFTED( media, KEYBOARD__3_Pound );
 
 // ----------------------------------------------------------------------------
 // layout
@@ -79,19 +81,19 @@ static layout_t layout PROGMEM = {
  bkslash,        q,        w,        e,        r,        t,      h6,
      tab,        a,        s,        d,        f,        g,
 shL2kcap,        z,        x,        c,        v,        b,      h7,
-    altL,    grave,  lpupo2l2,   shL2kcap,   ctrlL,
-                                                       del,      h7,
+    altL,    grave, lpupo2l2, shL2kcap,    ctrlL,
+                                                        bs,     del,
                                                        nop,      nop, lpu1l1,
-                                                     space,       bs, lpupo2l2,
+                                                     space, shL2kcap, lpupo3l3,
 // right hand ..... ......... ......... ......... ......... ......... .........
               dash,        6,        7,        8,        9,        0,    brktR,
-             brktL,        y,        u,        i,        o,        p,    brktL,
+               nop,        y,        u,        i,        o,        p,    brktL,
                            h,        j,        k,        l,  semicol,    quote,
-              dash,        n,        m,    comma,   period,    slash,     lock,
-                                lpupo2l2, arrowL,   arrowD,   arrowU,   arrowR,
-    h1,    h2,
+              dash,        n,        m,    comma,   period,    slash, shR2kcap,
+                                arrowL,   arrowD,   arrowU,   arrowR,     lock,
+    h1,       h2,
    h13,      nop,      nop,
-   lpupo2l2, shR2kcap,    enter  ),
+    bs, shR2kcap,  lpupo2l2  ),
 
 // ............................................................................
 
@@ -119,31 +121,55 @@ shL2kcap,        z,        x,        c,        v,        b,      h7,
 
 // ............................................................................
 
-    MATRIX_LAYER(  // layer 2 : symbols and function keys
+  MATRIX_LAYER(  // layer 2 : symbols and function keys
 // macro, unused,
-       K,    nop,
+     K,    nop,
 // left hand ...... ......... ......... ......... ......... ......... .........
-  transp,       F1,       F2,       F3,       F4,       F5,      F11,
-  transp, lessThan, grtrThan,   braceL,   braceR,   dollar,   transp,
-  transp,    brktL,    brktR,   parenL,   parenR,    caret,
-  transp,  semicol,    colon,     dash,    equal,     plus,   transp,
-  transp,   transp,   transp,   transp,   transp,
-                                                                mute,   volU,
-                                                    transp,   transp,   volD,
-                                                    bs,   play,   skip,
+transp,       F1,       F2,       F3,       F4,       F5,      F11,
+transp, lessThan, grtrThan,   braceL,   braceR,   dollar,   transp,
+transp,    brktL,    brktR,   parenL,   parenR,    caret,
+transp,  semicol,  undersc, asterisk,  undersc,     plus,   transp,
+transp,    enter,   transp,   transp,   transp,
+                                                              mute,   volU,
+                                                  transp,   transp,   volD,
+                                                      bs,    transp,   guiR,
 // right hand ..... ......... ......... ......... ......... ......... .........
-               F12,       F6,       F7,       F8,       F9,      F10, lpupo3l3,
-            transp,    caret,     home,   arrowU,      end,    pageU,   transp,
-                     undersc,   arrowL,   arrowD,   arrowR,    pageD,   transp,
-            transp,   exclam, asterisk,      amp,     pipe,  percent,   transp,
-                                transp,     home,    pageD,    pageU,      end,
-  h3,   h4,
-  h5,   transp,   transp,
-  guiR,   h11,   h12  ),
+             F12,       F6,       F7,       F8,       F9,      F10, lpupo4l4,
+          transp,    caret,     plus,      del,      end,    pageU,   transp,
+                      dash,    equal, asterisk,     plus,  undersc,   transp,
+          transp,       bs,   exclam,      amp,     pipe,  percent,   transp,
+                                home,    pageD,    pageU,      end,      h14,
+h3,   h4,
+h5,   transp,   transp,
+h12,   h11,   transp  ),
 
 // ............................................................................
 
-    MATRIX_LAYER(  // layer 3 : keyboard functions
+MATRIX_LAYER(  // layer 3 : media keys
+// macro, unused,
+   K,    nop,
+// left hand ...... ......... ......... ......... ......... ......... .........
+transp,       F1,       F2,       F3,       F4,       F5,      F11,
+transp,   transp,   transp,   transp,   transp,   transp,   transp,
+transp,   transp,   transp,   transp,   transp,   transp,
+transp,   transp,   transp,   transp,   transp,   transp,   transp,
+transp,   transp,   transp,   transp,   transp,
+                                                            mute,   volU,
+                                                transp,   transp,   volD,
+                                                 media,   play,     skip,
+// right hand ..... ......... ......... ......... ......... ......... .........
+           F12,       F6,       F7,       F8,       F9,      F10,      transp,
+           transp,   transp,   transp,   transp,   transp,   transp,   transp,
+           transp,   transp,   transp,   transp,   transp,   transp,
+           transp,   transp,   transp,   transp,   transp,   transp,   transp,
+                                 home,    pageD,    pageU,      end,   transp,
+transp,   transp,
+transp,   transp,   transp,
+transp,   transp,   transp  ),
+
+// ............................................................................
+
+    MATRIX_LAYER(  // layer 4 : keyboard functions
 // macro, unused,
        K,    nop,
 // left hand ...... ......... ......... ......... ......... ......... .........

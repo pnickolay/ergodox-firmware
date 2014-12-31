@@ -112,15 +112,38 @@ void layer_stack__push_pop_sticky(bool pressed, uint8_t layer_id) {
     }
 }
 
+
+void layer_stack__push_pop_enter(bool pressed, uint8_t layer_id) {
+   static uint16_t last_keypresses;
+   static uint16_t last_cycles;
+
+   if (pressed) {
+     last_keypresses = timer__get_keypresses();
+     last_cycles = timer__get_cycles();
+     layer_stack__push(0, layer_id, layer_id);
+   } else {
+     layer_stack__pop_id(layer_id);
+     if (last_keypresses + 1 == timer__get_keypresses() &&
+         last_cycles + 100 > timer__get_cycles()) {
+       usb__kb__set_key(true, KEYBOARD__ReturnEnter);
+       usb__kb__send_report();
+       usb__kb__set_key(false, KEYBOARD__ReturnEnter);
+       usb__kb__send_report();
+     }
+   }
+}
+
 #define  KEYS__LAYER__PUSH_POP(ID, LAYER)                                   \
     void P(lpupo##ID##l##LAYER) (void) { layer_stack__push(0, ID, LAYER); } \
     void R(lpupo##ID##l##LAYER) (void) { layer_stack__pop_id(ID); }
 
 #define  KEYS__LAYER__PUSH_POP_LED(ID)                                   \
-    void P(lpupo##ID##l##ID) (void) { layer_stack__push(0, ID, ID); \
+    void P(lpupo##ID##l##ID) (void) { layer_stack__push_pop_enter(true, ID); \
                                       kb__led__on(ID); }               \
-    void R(lpupo##ID##l##ID) (void) { layer_stack__pop_id(ID); \
+    void R(lpupo##ID##l##ID) (void) { layer_stack__push_pop_enter(false, ID); \
                                       kb__led__off(ID); }
+
+
 
 // ----------------------------------------------------------------------------
 
