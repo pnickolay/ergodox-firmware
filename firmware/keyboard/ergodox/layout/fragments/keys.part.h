@@ -113,7 +113,8 @@ void layer_stack__push_pop_sticky(bool pressed, uint8_t layer_id) {
 }
 
 
-void layer_stack__push_pop_enter(bool pressed, uint8_t layer_id) {
+void layer_stack__push_pop_key(
+    bool pressed, uint8_t layer_id, key_t keyf) {
    static uint16_t last_keypresses;
    static uint16_t last_cycles;
 
@@ -125,23 +126,31 @@ void layer_stack__push_pop_enter(bool pressed, uint8_t layer_id) {
      layer_stack__pop_id(layer_id);
      if (last_keypresses + 1 == timer__get_keypresses() &&
          last_cycles + 100 > timer__get_cycles()) {
-       usb__kb__set_key(true, KEYBOARD__ReturnEnter);
+       keyf[0]();
        usb__kb__send_report();
-       usb__kb__set_key(false, KEYBOARD__ReturnEnter);
+       keyf[1]();
        usb__kb__send_report();
      }
    }
 }
 
-#define  KEYS__LAYER__PUSH_POP(ID, LAYER)                                   \
-    void P(lpupo##ID##l##LAYER) (void) { layer_stack__push(0, ID, LAYER); } \
-    void R(lpupo##ID##l##LAYER) (void) { layer_stack__pop_id(ID); }
+#define  KEYS__LAYER__PUSH_POP(ID)                        \
+    void P(lpupo##ID) (void) { layer_stack__push(0, ID, ID); } \
+    void R(lpupo##ID) (void) { layer_stack__pop_id(ID); }
 
 #define  KEYS__LAYER__PUSH_POP_LED(ID)                                   \
-    void P(lpupo##ID##l##ID) (void) { layer_stack__push_pop_enter(true, ID); \
-                                      kb__led__on(ID); }               \
-    void R(lpupo##ID##l##ID) (void) { layer_stack__push_pop_enter(false, ID); \
-                                      kb__led__off(ID); }
+    void P(lpupo##ID) (void) { layer_stack__push(0, ID, ID); \
+                                  kb__led__on(ID); }               \
+    void R(lpupo##ID) (void) { layer_stack__pop_id(ID); \
+                                  kb__led__off(ID); }
+
+#define  KEYS__LAYER__PUSH_POP_KEY(ID, KEY)                                   \
+    void P(lpupo##ID##k) (void) { key_t key = K(KEY); \
+                                  layer_stack__push_pop_key(true, ID, key); \
+                                  kb__led__on(ID); }               \
+    void R(lpupo##ID##k) (void) { key_t key = K(KEY); \
+                                  layer_stack__push_pop_key(false, ID, key); \
+                                  kb__led__off(ID); }
 
 
 
@@ -279,63 +288,63 @@ void R(dmp_eepr) (void) {}
 // - the functions for layers 1 and 2 are special here in that they turn on and
 //   off the corresponding LED (the third LED is reserved for capslock)
 
-KEYS__LAYER__PUSH_POP(0, 0);
-#define  keys__press__lpu0l0    P(lpupo0l0)
-#define  keys__release__lpu0l0  KF(nop)
-#define  keys__press__lpo0l0    R(lpupo0l0)
-#define  keys__release__lpo0l0  KF(nop)
+KEYS__LAYER__PUSH_POP(0);
+#define  keys__press__lpu0    P(lpupo0)
+#define  keys__release__lpu0  KF(nop)
+#define  keys__press__lpo0    R(lpupo0)
+#define  keys__release__lpo0  KF(nop)
 
 KEYS__LAYER__PUSH_POP_LED(1);
-#define  keys__press__lpu1l1    P(lpupo1l1)
-#define  keys__release__lpu1l1  KF(nop)
-#define  keys__press__lpo1l1    R(lpupo1l1)
-#define  keys__release__lpo1l1  KF(nop)
+#define  keys__press__lpu1    P(lpupo1)
+#define  keys__release__lpu1  KF(nop)
+#define  keys__press__lpo1    R(lpupo1)
+#define  keys__release__lpo1  KF(nop)
 
-KEYS__LAYER__PUSH_POP_LED(2);
-#define  keys__press__lpu2l2    P(lpupo2l2)
-#define  keys__release__lpu2l2  KF(nop)
-#define  keys__press__lpo2l2    R(lpupo2l2)
-#define  keys__release__lpo2l2  KF(nop)
+KEYS__LAYER__PUSH_POP(2);
+#define  keys__press__lpu2    P(lpupo2)
+#define  keys__release__lpu2  KF(nop)
+#define  keys__press__lpo2    R(lpupo2)
+#define  keys__release__lpo2  KF(nop)
 
-KEYS__LAYER__PUSH_POP(3, 3);
-#define  keys__press__lpu3l3    P(lpupo3l3)
-#define  keys__release__lpu3l3  KF(nop)
-#define  keys__press__lpo3l3    R(lpupo3l3)
-#define  keys__release__lpo3l3  KF(nop)
+KEYS__LAYER__PUSH_POP(3);
+#define  keys__press__lpu3    P(lpupo3)
+#define  keys__release__lpu3  KF(nop)
+#define  keys__press__lpo3    R(lpupo3)
+#define  keys__release__lpo3  KF(nop)
 
-KEYS__LAYER__PUSH_POP(4, 4);
-#define  keys__press__lpu4l4    P(lpupo4l4)
-#define  keys__release__lpu4l4  KF(nop)
-#define  keys__press__lpo4l4    R(lpupo4l4)
-#define  keys__release__lpo4l4  KF(nop)
+KEYS__LAYER__PUSH_POP(4);
+#define  keys__press__lpu4    P(lpupo4)
+#define  keys__release__lpu4  KF(nop)
+#define  keys__press__lpo4    R(lpupo4)
+#define  keys__release__lpo4  KF(nop)
 
-KEYS__LAYER__PUSH_POP(5, 5);
-#define  keys__press__lpu5l5    P(lpupo5l5)
-#define  keys__release__lpu5l5  KF(nop)
-#define  keys__press__lpo5l5    R(lpupo5l5)
-#define  keys__release__lpo5l5  KF(nop)
+KEYS__LAYER__PUSH_POP(5);
+#define  keys__press__lpu5    P(lpupo5)
+#define  keys__release__lpu5  KF(nop)
+#define  keys__press__lpo5    R(lpupo5)
+#define  keys__release__lpo5  KF(nop)
 
-KEYS__LAYER__PUSH_POP(6, 6);
-#define  keys__press__lpu6l6    P(lpupo6l6)
-#define  keys__release__lpu6l6  KF(nop)
-#define  keys__press__lpo6l6    R(lpupo6l6)
-#define  keys__release__lpo6l6  KF(nop)
+KEYS__LAYER__PUSH_POP(6);
+#define  keys__press__lpu6    P(lpupo6)
+#define  keys__release__lpu6  KF(nop)
+#define  keys__press__lpo6    R(lpupo6)
+#define  keys__release__lpo6  KF(nop)
 
-KEYS__LAYER__PUSH_POP(7, 7);
-#define  keys__press__lpu7l7    P(lpupo7l7)
-#define  keys__release__lpu7l7  KF(nop)
-#define  keys__press__lpo7l7    R(lpupo7l7)
-#define  keys__release__lpo7l7  KF(nop)
+KEYS__LAYER__PUSH_POP(7);
+#define  keys__press__lpu7    P(lpupo7)
+#define  keys__release__lpu7  KF(nop)
+#define  keys__press__lpo7    R(lpupo7)
+#define  keys__release__lpo7  KF(nop)
 
-KEYS__LAYER__PUSH_POP(8, 8);
-#define  keys__press__lpu8l8    P(lpupo8l8)
-#define  keys__release__lpu8l8  KF(nop)
-#define  keys__press__lpo8l8    R(lpupo8l8)
-#define  keys__release__lpo8l8  KF(nop)
+KEYS__LAYER__PUSH_POP(8);
+#define  keys__press__lpu8    P(lpupo8)
+#define  keys__release__lpu8  KF(nop)
+#define  keys__press__lpo8    R(lpupo8)
+#define  keys__release__lpo8  KF(nop)
 
-KEYS__LAYER__PUSH_POP(9, 9);
-#define  keys__press__lpu9l9    P(lpupo9l9)
-#define  keys__release__lpu9l9  KF(nop)
-#define  keys__press__lpo9l9    R(lpupo9l9)
-#define  keys__release__lpo9l9  KF(nop)
+KEYS__LAYER__PUSH_POP(9);
+#define  keys__press__lpu9    P(lpupo9)
+#define  keys__release__lpu9  KF(nop)
+#define  keys__press__lpo9    R(lpupo9)
+#define  keys__release__lpo9  KF(nop)
 
