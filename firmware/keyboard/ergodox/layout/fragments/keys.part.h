@@ -116,16 +116,16 @@ void layer_stack__push_pop_sticky(bool pressed, uint8_t layer_id) {
 void layer_stack__push_pop_key(
     bool pressed, uint8_t layer_id, key_t keyf) {
    static uint16_t last_keypresses;
-   static uint16_t last_cycles;
+   static uint16_t last_time;
 
    if (pressed) {
      last_keypresses = timer__get_keypresses();
-     last_cycles = timer__get_cycles();
+     last_time = timer__get_milliseconds();
      layer_stack__push(0, layer_id, layer_id);
    } else {
      layer_stack__pop_id(layer_id);
      if (last_keypresses + 1 == timer__get_keypresses() &&
-         last_cycles + 100 > timer__get_cycles()) {
+         last_time + 500 > timer__get_milliseconds()) {
        keyf[0]();
        usb__kb__send_report();
        keyf[1]();
@@ -279,6 +279,12 @@ void R(dmp_prog) (void) {}
 void P(dmp_eepr) (void) { KF(dump_eeprom_ihex)( (void *)0, (void *)-1 ); }
 void R(dmp_eepr) (void) {}
 
+/**
+ * mouse left click
+ */
+
+void P(MclkL) (void) { KF(mouse_buttons)(1, 0, 0); }
+void R(MclkL) (void) { KF(mouse_buttons)(0, 0, 0); }
 
 // ----------------------------------------------------------------------------
 // --- layer ------------------------------------------------------------------

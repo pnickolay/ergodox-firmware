@@ -93,6 +93,14 @@ CFLAGS += -fdata-sections      # /   section in the output file if the
 			       #     linker optimizations, and discarding
 			       #     unused code.
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+ifdef MOUSE_ENABLE
+  CFLAGS += -DMOUSE_ENABLE
+endif
+
+ifdef NKRO_ENABLE
+  CFLAGS += -DNKRO_ENABLE
+endif
+
 # . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 LDFLAGS += -Wl,-Map=$(TARGET).map,--cref  # generate a link map, with a cross
 					  #   reference table

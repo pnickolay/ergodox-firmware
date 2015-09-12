@@ -27,12 +27,16 @@
 
 static struct {
     volatile uint16_t counter;
+} hardware_ticks;
+
+static struct {
+    volatile uint16_t counter;
 } milliseconds;
 
 // ----------------------------------------------------------------------------
 
 uint8_t timer__init(void) {
-    OCR0A  = 250;         // (ticks (of hardware timer) per millisecond)
+    OCR0A  = 5;          // (250 ticks (of hardware timer) per millisecond)
     TCCR0A = 0b00000010;  // (configure Timer/Counter 0)
     TCCR0B = 0b00000011;  // (configure Timer/Counter 0)
 
@@ -41,11 +45,21 @@ uint8_t timer__init(void) {
     return 0;  // success
 }
 
+uint16_t timer__get_hardware_ticks(void) {
+    return hardware_ticks.counter;
+}
+
 uint16_t timer__get_milliseconds(void) {
     return milliseconds.counter;
 }
 
 ISR(TIMER0_COMPA_vect) {
+  hardware_ticks.counter++;
+  static uint8_t counter = 0;
+  counter++;
+  if (counter % 50 == 0) {
     milliseconds.counter++;
+    counter = 0;
+  }
 }
 

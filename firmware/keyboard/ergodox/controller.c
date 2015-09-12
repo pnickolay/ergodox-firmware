@@ -21,10 +21,10 @@ uint8_t kb__init(void) {
     if (teensy__init())    // must be first (to initialize twi, and such)
         return 1;
     if (mcp23018__init())  // must be second
-        return 2;
+        ;//return 2;
 
-    if (eeprom_macro__init())
-        return 3;
+//    if (eeprom_macro__init())
+//        return 3;
 
     return 0;  // success
 }

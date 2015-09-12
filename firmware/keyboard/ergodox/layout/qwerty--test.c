@@ -75,13 +75,227 @@ KEYS__HOTKEY( volD, KEYBOARD__F9 );
 KEYS__HOTKEY( mute, KEYBOARD__F8 );
 
 KEYS__ALT_SHIFTED( play, KEYBOARD__1_Exclamation );
-KEYS__ALT_SHIFTED( skip, KEYBOARD__2_At );
+KEYS__ALT_SHIFTED( next, KEYBOARD__2_At );
+KEYS__ALT_SHIFTED( prev, KEYBOARD__6_Caret );
 KEYS__ALT_SHIFTED( media, KEYBOARD__3_Pound );
 KEYS__ALT_SHIFTED( thumbU, KEYBOARD__4_Dollar );
 KEYS__ALT_SHIFTED( thumbD, KEYBOARD__5_Percent);
 
 KEYS__LAYER__PUSH_POP_KEY(2, enter);
 KEYS__LAYER__PUSH_POP_KEY(3, play);
+
+/**
+ * record mouse click sequence
+ */
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+
+#define MAX_CLICKS 50
+static bool is_recording = false;
+static uint16_t mem_seq[10][MAX_CLICKS+1];
+static uint16_t current_seq[MAX_CLICKS];
+static uint16_t start_time;
+static int current_num = 0;
+static int debug_i = -1;
+
+void P(rec) (void) {
+  is_recording = !is_recording;
+
+  if (is_recording) {
+    kb__led__on(1);
+    current_num = 0;
+    start_time = timer__get_hardware_ticks();
+  } else {
+    kb__led__off(1);
+  }
+}
+void R(rec) (void) { }
+
+void P(clk) (void) {
+  if (is_recording) {
+    current_seq[current_num++] = timer__get_hardware_ticks() - start_time;
+    if (current_num == MAX_CLICKS)
+      P(rec)();
+  } else if (debug_i != -1) {
+    int diff = current_seq[debug_i] - (int)(timer__get_hardware_ticks() - start_time);
+    if (diff < 0)
+      kb__led__on(1);
+    else if (diff > 0)
+      kb__led__on(2);
+    else
+      kb__led__all_off();
+  }
+
+  KF(mouse_left_click)(0, 0);
+}
+void R(clk) (void) { }
+
+void P(dclk) (void) { P(clk)(); P(clk)(); }
+void R(dclk) (void) { }
+
+static bool inf_click = false;
+void infClick(void) {
+  if (!inf_click)
+    return;
+  P(clk)();
+  timer__schedule_cycles(1, infClick);
+}
+void P(iclk) (void) {
+  inf_click = true;
+  infClick();
+}
+void R(iclk) (void) { inf_click = false; }
+
+void P(cur) (void) {
+  if (is_recording)
+    return;
+
+  start_time = timer__get_hardware_ticks();
+  for (int i = 0; i < current_num; ++i) {
+    while( timer__get_hardware_ticks() - start_time < current_seq[i]) ;
+    debug_i = i;
+    P(clk)();
+  }
+  debug_i = -1;
+}
+void R(cur) (void) { }
+
+static bool is_looping = false;
+void loopCur(void) {
+  if (is_looping) {
+    P(cur)();
+    timer__schedule_cycles(10, loopCur);
+  }
+}
+void P(loop) (void) {
+  if (is_recording)
+    return;
+
+  is_looping = true;
+  loopCur();
+}
+void R(loop) (void) { }
+
+void P(sloop) (void) {
+  if (is_recording)
+    return;
+
+  kb__led__all_off();
+  is_looping = false;
+}
+void R(sloop) (void) { }
+
+static uint16_t skp_time;
+void P(skp) (void) {
+  skp_time = timer__get_milliseconds();
+}
+void R(skp) (void) {
+  if (timer__get_milliseconds() - skp_time > 500)
+    return;
+
+  KF(mouse_left_click)(0, 0);
+}
+
+static bool editing_interval = false;
+static uint16_t change_speed = 1;
+void P(mUp) (void) {
+  if (editing_interval) {
+    change_speed <<= 1;
+    if (change_speed == 0)
+      change_speed = 1 << 15;
+    return;
+  }
+
+  KF(mouse_move)(0, -30);
+}
+void R(mUp) (void) { }
+void P(mDw) (void) {
+  if (editing_interval) {
+    change_speed >>= 1;
+    if (change_speed == 0)
+      change_speed = 1;
+    return;
+  }
+
+  KF(mouse_move)(0, 30);
+}
+void R(mDw) (void) { }
+void P(mLf) (void) {
+  if (editing_interval) {
+    current_seq[current_num - 1] -= change_speed;
+    return;
+  }
+
+  KF(mouse_move)(-30, 0);
+}
+void R(mLf) (void) { }
+void P(mRt) (void) {
+  if (editing_interval) {
+    current_seq[current_num - 1] += change_speed;
+    return;
+  }
+
+  KF(mouse_move)(30, 0);
+}
+void R(mRt) (void) { }
+void P(mDel) (void) {
+  if (current_num) --current_num;
+}
+void R(mDel) (void) { }
+void P(mAppend) (void) {
+  if (is_recording)
+    P(rec)();
+  P(cur)();
+  is_recording = true;
+  kb__led__on(1);
+}
+void R(mAppend) (void) { }
+
+void P(mTT) (void) {
+  editing_interval = !editing_interval;
+}
+void R(mTT) (void) { }
+
+void save_seq(int pos) {
+  mem_seq[pos][0] = current_num;
+  for (int i = 0; i < current_num; ++i)
+    mem_seq[pos][i + 1] = current_seq[i];
+}
+
+void play_seq(int pos) {
+  if (!is_recording)
+    start_time = timer__get_hardware_ticks();
+
+  for (int i = 0; i < mem_seq[pos][0]; ++i) {
+    while( timer__get_hardware_ticks() - start_time < mem_seq[pos][i + 1] );
+    P(clk)();
+  }
+}
+
+bool mem_store = false;
+void P(mstore) (void) { mem_store = true; }
+void R(mstore) (void) { mem_store = false; }
+
+#define MMEM(n) \
+void P(mmem##n) (void) { \
+  if (mem_store) save_seq(n); \
+  else play_seq(n); \
+} \
+void R(mmem##n) (void) { }
+
+MMEM(0);
+MMEM(1);
+MMEM(2);
+MMEM(3);
+MMEM(4);
+MMEM(5);
+MMEM(6);
+MMEM(7);
+MMEM(8);
+MMEM(9);
+
 
 // ----------------------------------------------------------------------------
 // layout
@@ -109,7 +323,7 @@ shL2kcap,        z,        x,        c,        v,        b,      hf7,
               dash,        n,        m,    comma,   period,    slash, shR2kcap,
                                 arrowL,   arrowD,   arrowU,   arrowR,     lock,
    hf1,      hf2,
-hPause,      nop,      nop,
+   hf3,      nop,      nop,
     bs, shR2kcap,   lpupo2k ),
 
 // ............................................................................
@@ -147,19 +361,18 @@ transp, lessThan, grtrThan,   braceL,   braceR,   dollar,   transp,
 transp,    brktL,    brktR,   parenL,   parenR,    caret,
 transp,  semicol,  undersc, asterisk,  undersc,    pound,   transp,
 transp,    enter,   transp,   transp,   transp,
-                                                              mute, thumbD,
-                                                  transp,   transp, transp,
-                                                  transp,   transp,
-                                                  skip,
+                                                              prev,   next,
+                                                  transp,   transp, thumbD,
+                                                  transp,   transp,   next,
 // right hand ..... ......... ......... ......... ......... ......... .........
-             F12,       F6,       F7,       F8,       F9,      F10,   lpupo4,
-          transp,    caret,     plus,      del,      end,    pageU,   transp,
-                   undersc,    equal, asterisk,     plus,    colon, dblQuote,
-            hf11,      del,   exclam,      amp,     pipe,  percent,   transp,
+             F12,       F6,       F7,       F8,       F9,      F10,     lpu4,
+          transp,    caret,     plus,  percent,      end,    pageU,   transp,
+                   undersc,    equal,    kpMul,    kpAdd,    colon, dblQuote,
+            hf11,      del,   exclam,      amp,     pipe, question,   transp,
                                 home,    pageD,    pageU,      end,     hApp,
-  hf3,    hf4,
-  hf5, transp,   transp,
- guiR, transp,   transp  ),
+hPause,    hf4,
+   hf5, transp,   transp,
+  guiR, transp,   transp  ),
 
 // ............................................................................
 
@@ -191,23 +404,23 @@ transp,   transp,   transp  ),
 // macro, unused,
        K,    nop,
 // left hand ...... ......... ......... ......... ......... ......... .........
-   btldr,      nop,      nop,      nop,      nop,      nop,      nop,
-     nop,      nop,      nop,      nop,      nop,      nop,      nop,
-     nop,      nop,      nop,      nop,      nop,      nop,
+  mstore,    mmem1,    mmem2,    mmem3,    mmem4,    mmem5,      nop,
+     nop,      nop,      nop,      mUp,      nop,      nop,      nop,
+     nop,      nop,      mLf,      mDw,      mRt,      nop,
      nop,      nop,      nop,      nop,      nop,      nop,      nop,
      nop,      nop,      nop,      nop,      nop,
-                                                                 nop,      nop,
+                                                                mDel,  mAppend,
                                                        nop,      nop,      nop,
-                                                       nop,      nop,      nop,
+                                                       skp,      nop,      mTT,
 // right hand ..... ......... ......... ......... ......... ......... .........
+               nop,    mmem6,    mmem7,    mmem8,    mmem9,    mmem0,      nop,
                nop,      nop,      nop,      nop,      nop,      nop,      nop,
-               nop,      nop,      nop,      nop,      nop,      nop,      nop,
-                         nop,      nop,      nop,      nop,      nop,      nop,
-               nop,      nop,      nop,      nop,      nop,      nop,      nop,
+                         nop,      clk,      clk,     dclk,     dclk,      nop,
+              lpo4,      nop,      nop,      nop,      nop,      nop,      nop,
                                    nop,      nop,      nop,      nop,      nop,
-     nop,      nop,
+    loop,    sloop,
      nop,      nop,      nop,
-     nop,      nop,      nop  ),
+     rec,      cur,      iclk  ),
 
 // ............................................................................
 };

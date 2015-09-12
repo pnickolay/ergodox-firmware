@@ -23,7 +23,6 @@
  *   `kb__layout__exec_key_layer()`.
  */
 void kb__layout__exec_key(bool pressed, uint8_t row, uint8_t column) {
-
     // - to keep track of the layer a key was pressed on, so we can release on
     //   the same layer
     static uint8_t pressed_layer[OPT__KB__ROWS][OPT__KB__COLUMNS];
