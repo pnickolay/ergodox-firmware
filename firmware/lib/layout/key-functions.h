@@ -25,6 +25,12 @@ void key_functions__press   (uint8_t keycode);
 void key_functions__release (uint8_t keycode);
 void key_functions__toggle  (uint8_t keycode);
 
+// recent keys
+void key_functions__recent_keys_reset(void);
+void key_functions__recent_keys_add(uint8_t keycode);
+void key_functions__repeat_recent_keys(void);
+uint8_t key_functions__recent_keys_length(void);
+
 // device
 void key_functions__jump_to_bootloader (void);
 void key_functions__dump_sram_ihex     (void * from, void * last);

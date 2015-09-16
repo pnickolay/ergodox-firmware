@@ -17,18 +17,31 @@
  *
  * Needed by ".../lib/layout/keys.h"
  */
-#define  KEYS__DEFAULT(name, value)             \
-    void P(name) (void) { KF(press)(value); }   \
+#define  KEYS__DEFAULT(name, value)                \
+    void P(name) (void) { KF(recent_keys_reset)(); \
+                          KF(press)(value); }      \
+    void R(name) (void) { KF(recent_keys_reset)(); \
+                          KF(release)(value); }
+
+/**                                            macros/KEYS__DEFAULT/description
+ * Define the functions for alphanumeric keys. There are saved in recent keys.
+ *
+ * Needed by ".../lib/layout/keys.h"
+ */
+#define  KEYS__ALPHA(name, value)                     \
+    void P(name) (void) { KF(recent_keys_add)(value); \
+                          KF(press)(value); }         \
     void R(name) (void) { KF(release)(value); }
 
 /**                                            macros/KEYS__SHIFTED/description
  * Define the functions for a "shifted" key (i.e. a key that sends a "shift"
- * along with the keycode)
+ * along with the keycode). There are saved in recent keys.
  *
  * Needed by ".../lib/layout/keys.h"
  */
 #define  KEYS__SHIFTED(name, value)                             \
-    void P(name) (void) { KF(press)(KEYBOARD__LeftShift);       \
+    void P(name) (void) { KF(recent_keys_add)(value);           \
+                          KF(press)(KEYBOARD__LeftShift);       \
                           KF(press)(value); }                   \
     void R(name) (void) { KF(release)(value);                   \
                           KF(release)(KEYBOARD__LeftShift); }

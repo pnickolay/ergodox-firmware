@@ -47,10 +47,10 @@ KEYS__FHOTKEY( 3 );
 KEYS__FHOTKEY( 4 );
 KEYS__FHOTKEY( 5 );
 KEYS__FHOTKEY( 6 );
-KEYS__FHOTKEY( 7 );
-//KEYS__FHOTKEY( 8 );
-//KEYS__FHOTKEY( 9 );
-//KEYS__FHOTKEY( 10 );
+KEYS__FHOTKEY( 7 );  // language
+//KEYS__FHOTKEY( 8 );  // mute
+//KEYS__FHOTKEY( 9 );  // volD
+//KEYS__FHOTKEY( 10 ); // volU
 KEYS__FHOTKEY( 11 );
 KEYS__FHOTKEY( 12 );
 
@@ -83,6 +83,24 @@ KEYS__ALT_SHIFTED( thumbD, KEYBOARD__5_Percent);
 
 KEYS__LAYER__PUSH_POP_KEY(2, enter);
 KEYS__LAYER__PUSH_POP_KEY(3, play);
+
+// change language and retype
+void P(swpLang) (void) {
+  uint8_t count = KF(recent_keys_length)();
+  for (int i = 0; i < count; ++i) {
+    usb__kb__set_key(true, KEYBOARD__DeleteBackspace);
+    usb__kb__send_report();
+    usb__kb__set_key(false, KEYBOARD__DeleteBackspace);
+    usb__kb__send_report();
+  }
+  P(hf7)();
+  usb__kb__send_report();
+  R(hf7)();
+  usb__kb__send_report();
+  timer__schedule_cycles(20, KF(repeat_recent_keys));
+}
+void R(swpLang) (void) { }
+
 
 /**
  * record mouse click sequence
@@ -359,7 +377,7 @@ shL2kcap,        z,        x,        c,        v,        b,      hf7,
 transp,       F1,       F2,       F3,       F4,       F5,      F11,
 transp, lessThan, grtrThan,   braceL,   braceR,   dollar,   transp,
 transp,    brktL,    brktR,   parenL,   parenR,    caret,
-transp,  semicol,  undersc, asterisk,  undersc,    pound,   transp,
+transp,  semicol,  undersc, asterisk,  undersc,    pound,  swpLang,
 transp,    enter,   transp,   transp,   transp,
                                                               prev,   next,
                                                   transp,   transp, thumbD,

@@ -95,10 +95,6 @@ int main(void) {
     time_scan_started  // on the first iteration, scan immediately
         = timer__get_milliseconds() - OPT__DEBOUNCE_TIME;
 
-//    static uint16_t time_last_press_change;
-//    time_last_press_change = timer__get_milliseconds();
-//    kb__led__set( 2, OPT__LED_BRIGHTNESS / 10.);
-
     for (;;) {
         temp = is_pressed;
         is_pressed = was_pressed;
@@ -122,14 +118,6 @@ int main(void) {
         }
 
         usb__kb__send_report();  // (even if nothing's changed)
-
-//        // stuck key handling
-//        if (timer__get_milliseconds() - time_last_press_change > 5000) {
-//          static bool state = false;
-//          state ? kb__led__off(2) : kb__led__on(2);
-//          state = !state;
-//          time_last_press_change = timer__get_milliseconds();
-//        }
 
         // note: only use the `kb__led__logical...` functions here, since the
         // meaning of the physical LEDs should be controlled by the layout
