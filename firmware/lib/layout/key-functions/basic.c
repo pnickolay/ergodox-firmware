@@ -38,7 +38,7 @@ uint8_t key_functions__recent_keys_length(void) {
 void key_functions__recent_keys_add(uint8_t keycode) {
   static uint16_t last_type_time = 0;
 
-  if (last_type_time + 1500 < timer__get_milliseconds())
+  if (last_type_time + 1000 < timer__get_milliseconds())
     key_functions__recent_keys_reset();
   last_type_time = timer__get_milliseconds();
 
@@ -51,7 +51,8 @@ void key_functions__recent_keys_add(uint8_t keycode) {
   if (recent_key_num == MAX_KEYSTROKES)
     return;
 
-  recent_keys[recent_key_num].shifted = usb__kb__read_key(KEYBOARD__LeftShift);
+  recent_keys[recent_key_num].shifted = usb__kb__read_key(KEYBOARD__LeftShift)
+      || usb__kb__read_key(KEYBOARD__RightShift);
   recent_keys[recent_key_num].keycode = keycode;
   ++recent_key_num;
 }

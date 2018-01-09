@@ -50,7 +50,7 @@ uint8_t  timer__init             (void);
 uint16_t timer__get_cycles       (void);
 uint16_t timer__get_keypresses   (void);
 uint16_t timer__get_milliseconds (void);
-uint16_t timer__get_hardware_ticks (void);
+uint32_t timer__get_hardware_ticks (void);
 
 uint8_t  timer__schedule_cycles       (uint16_t ticks, void(*function)(void));
 uint8_t  timer__schedule_keypresses   (uint16_t ticks, void(*function)(void));

@@ -26,7 +26,7 @@
 // ----------------------------------------------------------------------------
 
 static struct {
-    volatile uint16_t counter;
+    volatile uint32_t counter;
 } hardware_ticks;
 
 static struct {
@@ -45,7 +45,7 @@ uint8_t timer__init(void) {
     return 0;  // success
 }
 
-uint16_t timer__get_hardware_ticks(void) {
+uint32_t timer__get_hardware_ticks(void) {
     return hardware_ticks.counter;
 }
 

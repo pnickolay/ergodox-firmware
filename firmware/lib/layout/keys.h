@@ -147,7 +147,7 @@ KEYS__DEFAULT(    F11,            KEYBOARD__F11                        );
 KEYS__DEFAULT(    F12,            KEYBOARD__F12                        );
 
 // whitespace and symbols
-KEYS__ALPHA(    enter,          KEYBOARD__ReturnEnter                );
+KEYS__DEFAULT(    enter,          KEYBOARD__ReturnEnter                );
 KEYS__ALPHA(    space,          KEYBOARD__Spacebar                   );
 KEYS__DEFAULT(    tab,            KEYBOARD__Tab                        );
 // ---

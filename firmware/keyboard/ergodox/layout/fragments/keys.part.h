@@ -40,9 +40,9 @@
  * Needed by ".../lib/layout/keys.h"
  */
 #define  KEYS__SHIFTED(name, value)                             \
-    void P(name) (void) { KF(recent_keys_add)(value);           \
-                          KF(press)(KEYBOARD__LeftShift);       \
-                          KF(press)(value); }                   \
+    void P(name) (void) { KF(press)(KEYBOARD__LeftShift);       \
+                          KF(press)(value);                     \
+                          KF(recent_keys_add)(value); }         \
     void R(name) (void) { KF(release)(value);                   \
                           KF(release)(KEYBOARD__LeftShift); }
 

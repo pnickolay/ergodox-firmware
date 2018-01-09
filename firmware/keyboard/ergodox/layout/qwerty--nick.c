@@ -103,7 +103,7 @@ shL2kcap,        z,        x,        c,        v,        b,      hf7,
                                                        nop,      nop, lpupo1,
                                                      space, shL2kcap, lpupo3k,
 // right hand ..... ......... ......... ......... ......... ......... .........
-              dash,        6,        7,        8,        9,        0,    brktR,
+             prScr,        6,        7,        8,        9,        0,    brktR,
               lpu1,        y,        u,        i,        o,        p,    brktL,
                            h,        j,        k,        l,  semicol,    quote,
               dash,        n,        m,    comma,   period,    slash, shR2kcap,

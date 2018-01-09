@@ -11,12 +11,10 @@
  * Implements the "layout" section of '.../firmware/keyboard.h'
  */
 
-
 #include "./fragments/includes.part.h"
 #include "./fragments/macros.part.h"
 #include "./fragments/types.part.h"
 #include "./fragments/variables.part.h"
-
 
 // ----------------------------------------------------------------------------
 // keys
@@ -24,13 +22,11 @@
 
 #include "./fragments/keys.part.h"
 
-
 // ----------------------------------------------------------------------------
 // LED control
 // ----------------------------------------------------------------------------
 
 #include "./fragments/led-control.part.h"
-
 
 // ----------------------------------------------------------------------------
 // matrix control
@@ -67,6 +63,7 @@ KEYS__HOTKEY( h0, KEYBOARD__0_RightParenthesis);
 
 KEYS__HOTKEY( hPause, KEYBOARD__Pause );
 KEYS__HOTKEY( hApp, KEYBOARD__Application );
+KEYS__HOTKEY( hPrScr, KEYBOARD__PrintScreen );
 
 KEYS__DEFAULT( lock, KEYBOARD__Application );
 
@@ -97,7 +94,7 @@ void P(swpLang) (void) {
   usb__kb__send_report();
   R(hf7)();
   usb__kb__send_report();
-  timer__schedule_cycles(20, KF(repeat_recent_keys));
+  timer__schedule_cycles(30, KF(repeat_recent_keys));
 }
 void R(swpLang) (void) { }
 
@@ -112,9 +109,9 @@ void R(swpLang) (void) { }
 
 #define MAX_CLICKS 50
 static bool is_recording = false;
-static uint16_t mem_seq[10][MAX_CLICKS+1];
-static uint16_t current_seq[MAX_CLICKS];
-static uint16_t start_time;
+static uint32_t mem_seq[4][MAX_CLICKS + 1];
+static uint32_t current_seq[MAX_CLICKS];
+static uint32_t start_time;
 static int current_num = 0;
 static int debug_i = -1;
 
@@ -172,7 +169,8 @@ void P(cur) (void) {
 
   start_time = timer__get_hardware_ticks();
   for (int i = 0; i < current_num; ++i) {
-    while( timer__get_hardware_ticks() - start_time < current_seq[i]) ;
+    while (timer__get_hardware_ticks() - start_time < current_seq[i])
+      ;
     debug_i = i;
     P(clk)();
   }
@@ -335,7 +333,7 @@ shL2kcap,        z,        x,        c,        v,        b,      hf7,
                                                        nop,      nop, lpupo1,
                                                      space, shL2kcap, lpupo3k,
 // right hand ..... ......... ......... ......... ......... ......... .........
-              dash,        6,        7,        8,        9,        0,    brktR,
+             prScr,        6,        7,        8,        9,        0,    brktR,
               lpu1,        y,        u,        i,        o,        p,    brktL,
                            h,        j,        k,        l,  semicol,    quote,
               dash,        n,        m,    comma,   period,    slash, shR2kcap,
@@ -374,8 +372,8 @@ shL2kcap,        z,        x,        c,        v,        b,      hf7,
 // macro, unused,
      K,    nop,
 // left hand ...... ......... ......... ......... ......... ......... .........
-transp,       F1,       F2,       F3,       F4,       F5,      F11,
-transp, lessThan, grtrThan,   braceL,   braceR,   dollar,   transp,
+ pause,       F1,       F2,       F3,       F4,       F5,      F11,
+transp, lessThan, grtrThan,   braceL,   braceR,   dollar,   hPrScr,
 transp,    brktL,    brktR,   parenL,   parenR,    caret,
 transp,  semicol,  undersc, asterisk,  undersc,    pound,  swpLang,
 transp,    enter,   transp,   transp,   transp,
@@ -384,9 +382,9 @@ transp,    enter,   transp,   transp,   transp,
                                                   transp,   transp,   next,
 // right hand ..... ......... ......... ......... ......... ......... .........
              F12,       F6,       F7,       F8,       F9,      F10,     lpu4,
-          transp,    caret,     plus,  percent,      end,    pageU,   transp,
+              h7,    caret,     plus,  percent,      end,    pageU,   transp,
                    undersc,    equal,    kpMul,    kpAdd,    colon, dblQuote,
-            hf11,      del,   exclam,      amp,     pipe, question,   transp,
+              h6,      del,   exclam,      amp,     pipe, question,   transp,
                                 home,    pageD,    pageU,      end,     hApp,
 hPause,    hf4,
    hf5, transp,   transp,
@@ -399,9 +397,9 @@ MATRIX_LAYER(  // layer 3 : media keys
    K,    nop,
 // left hand ...... ......... ......... ......... ......... ......... .........
  btldr,       F1,       F2,       F3,       F4,       F5,      F11,
-transp,   transp,   transp,   transp,   transp,   transp,   transp,
+transp,   transp,   transp,   transp,   transp,   transp,     hf12,
 transp,   transp,   transp,   transp,   transp,   transp,
-transp,   transp,   transp,   transp,   transp,   transp,   transp,
+transp,   transp,   transp,   transp,   transp,   transp,     hf11,
 transp,   transp,   transp,   transp,   transp,
                                                             mute,   volU,
                                                 transp,   transp,   volD,
