@@ -50,11 +50,11 @@ KEYS__FHOTKEY( 7 );  // language
 KEYS__FHOTKEY( 11 );
 KEYS__FHOTKEY( 12 );
 
-//KEYS__HOTKEY( h1, KEYBOARD__1_Exclamation );
-//KEYS__HOTKEY( h2, KEYBOARD__2_At);
-//KEYS__HOTKEY( h3, KEYBOARD__3_Pound);
-//KEYS__HOTKEY( h4, KEYBOARD__4_Dollar);
-//KEYS__HOTKEY( h5, KEYBOARD__5_Percent);
+KEYS__HOTKEY( h1, KEYBOARD__1_Exclamation );
+KEYS__HOTKEY( h2, KEYBOARD__2_At);
+KEYS__HOTKEY( h3, KEYBOARD__3_Pound);
+KEYS__HOTKEY( h4, KEYBOARD__4_Dollar);
+KEYS__HOTKEY( h5, KEYBOARD__5_Percent);
 KEYS__HOTKEY( h6, KEYBOARD__6_Caret);
 KEYS__HOTKEY( h7, KEYBOARD__7_Ampersand);
 KEYS__HOTKEY( h8, KEYBOARD__8_Asterisk);
@@ -71,16 +71,17 @@ KEYS__HOTKEY( volU, KEYBOARD__F10 );
 KEYS__HOTKEY( volD, KEYBOARD__F9 );
 KEYS__HOTKEY( mute, KEYBOARD__F8 );
 
-KEYS__ALT_SHIFTED( play, KEYBOARD__1_Exclamation );
-KEYS__ALT_SHIFTED( next, KEYBOARD__2_At );
-KEYS__ALT_SHIFTED( prev, KEYBOARD__6_Caret );
-KEYS__ALT_SHIFTED( media, KEYBOARD__3_Pound );
-KEYS__ALT_SHIFTED( thumbU, KEYBOARD__4_Dollar );
-KEYS__ALT_SHIFTED( thumbD, KEYBOARD__5_Percent);
+KEYS__ALT( play, KEYBOARD__z_Z );
+KEYS__ALT( next, KEYBOARD__x_X );
+KEYS__ALT( prev, KEYBOARD__c_C );
+KEYS__ALT( media, KEYBOARD__a_A );
+KEYS__ALT( thumbU, KEYBOARD__Period_GreaterThan );
+KEYS__ALT( thumbD, KEYBOARD__Comma_LessThan);
 
 KEYS__LAYER__PUSH_POP_KEY(2, enter);
 KEYS__LAYER__PUSH_POP_KEY(3, play);
 
+KEYS__GUI( lang, KEYBOARD__Spacebar );
 // change language and retype
 void P(swpLang) (void) {
   uint8_t count = KF(recent_keys_length)();
@@ -90,9 +91,9 @@ void P(swpLang) (void) {
     usb__kb__set_key(false, KEYBOARD__DeleteBackspace);
     usb__kb__send_report();
   }
-  P(hf7)();
+  P(lang)();
   usb__kb__send_report();
-  R(hf7)();
+  R(lang)();
   usb__kb__send_report();
   timer__schedule_cycles(30, KF(repeat_recent_keys));
 }
@@ -327,8 +328,8 @@ static layout_t layout PROGMEM = {
      esc,        1,        2,        3,        4,        5,    equal,
  bkslash,        q,        w,        e,        r,        t,      hf6,
      tab,        a,        s,        d,        f,        g,
-shL2kcap,        z,        x,        c,        v,        b,      hf7,
-    altL,    grave,   lpupo2, shL2kcap,    ctrlL,
+shL2kcap,        z,        x,        c,        v,        b,      lang,
+    altL,    grave,   lpupo2,    ctrlL,     guiL,
                                                        del,       bs,
                                                        nop,      nop, lpupo1,
                                                      space, shL2kcap, lpupo3k,

@@ -46,7 +46,31 @@
     void R(name) (void) { KF(release)(value);                   \
                           KF(release)(KEYBOARD__LeftShift); }
 
-/**                                       macros/KEYS__CTRL_SHIFTED/description
+/**                                       macros/KEYS__ALT/description
+ * Define the functions for a "alt" key (i.e. a key that sends
+ * a "alt" along with the keycode)
+ *
+ * Needed by ".../lib/layout/keys.h"
+ */
+#define  KEYS__ALT(name, value)                         \
+    void P(name) (void) { KF(press)(KEYBOARD__LeftAlt);         \
+                          KF(press)(value); }                   \
+    void R(name) (void) { KF(release)(value);                   \
+                          KF(release)(KEYBOARD__LeftAlt); }
+
+/**                                       macros/KEYS__GUI/description
+ * Define the functions for a "GUI" key (i.e. a key that sends
+ * a "GUI" along with the keycode)
+ *
+ * Needed by ".../lib/layout/keys.h"
+ */
+#define  KEYS__GUI(name, value)                         \
+    void P(name) (void) { KF(press)(KEYBOARD__LeftGUI);         \
+                          KF(press)(value); }                   \
+    void R(name) (void) { KF(release)(value);                   \
+                          KF(release)(KEYBOARD__LeftGUI); }
+
+/**                                       macros/KEYS__ALT_SHIFTED/description
  * Define the functions for a "alt+shifted" key (i.e. a key that sends
  * a "alt" and "shift" along with the keycode)
  *
