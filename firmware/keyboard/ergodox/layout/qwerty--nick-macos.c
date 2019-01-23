@@ -67,9 +67,9 @@ KEYS__HOTKEY( hPrScr, KEYBOARD__PrintScreen );
 
 KEYS__DEFAULT( lock, KEYBOARD__Application );
 
-KEYS__HOTKEY( volU, KEYBOARD__F10 );
-KEYS__HOTKEY( volD, KEYBOARD__F9 );
-KEYS__HOTKEY( mute, KEYBOARD__F8 );
+KEYS__DEFAULT( volU, KEYBOARD__VolumeUp );
+KEYS__DEFAULT( volD, KEYBOARD__VolumeDown );
+KEYS__DEFAULT( mute, KEYBOARD__Mute );
 
 KEYS__ALT( play, KEYBOARD__z_Z );
 KEYS__ALT( next, KEYBOARD__x_X );
