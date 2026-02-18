@@ -21,11 +21,14 @@ F_CPU := 16000000
 # processor speed, in Hz; max value is 16000000 (16MHz); must match
 # initialization in source
 
-KEYBOARD_LAYOUT := qwerty--test
+KEYBOARD_LAYOUT := qwerty--nick-macos
 # default layout for this keyboard
 
 KEYBOARD_LAYOUTS := \
 	test \
+	qwerty--test \
+	qwerty--nick \
+	qwerty--nick-macos \
 	arensito--ben \
 	qwerty--ben \
 	colemak--kinesis-mod \

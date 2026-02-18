@@ -11,6 +11,8 @@
  * Implements the "layout" section of '.../firmware/keyboard.h'
  */
 
+#define MACOS
+
 #include "./fragments/includes.part.h"
 #include "./fragments/macros.part.h"
 #include "./fragments/types.part.h"
@@ -81,7 +83,7 @@ KEYS__ALT( thumbD, KEYBOARD__Comma_LessThan);
 KEYS__LAYER__PUSH_POP_KEY(2, enter);
 KEYS__LAYER__PUSH_POP_KEY(3, play);
 
-KEYS__GUI( lang, KEYBOARD__Spacebar );
+KEYS__ALT_CTRL( lang, KEYBOARD__Spacebar );
 // change language and retype
 void P(swpLang) (void) {
   uint8_t count = KF(recent_keys_length)();

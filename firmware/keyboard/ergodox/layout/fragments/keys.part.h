@@ -70,6 +70,32 @@
     void R(name) (void) { KF(release)(value);                   \
                           KF(release)(KEYBOARD__LeftGUI); }
 
+/**                                       macros/KEYS__GUI_CTRL/description
+ * Define the functions for a "GUI+CTRL" key
+ *
+ * Needed by ".../lib/layout/keys.h"
+ */
+#define  KEYS__GUI_CTRL(name, value)                         \
+    void P(name) (void) { KF(press)(KEYBOARD__LeftGUI);         \
+                          KF(press)(KEYBOARD__LeftControl);     \
+                          KF(press)(value); }                   \
+    void R(name) (void) { KF(release)(value);                   \
+                          KF(release)(KEYBOARD__LeftControl);   \
+                          KF(release)(KEYBOARD__LeftGUI); }
+
+/**                                       macros/KEYS__ALT_CTRL/description
+ * Define the functions for a "ALT+CTRL" key
+ *
+ * Needed by ".../lib/layout/keys.h"
+ */
+#define  KEYS__ALT_CTRL(name, value)                         \
+    void P(name) (void) { KF(press)(KEYBOARD__LeftAlt);         \
+                          KF(press)(KEYBOARD__LeftControl);     \
+                          KF(press)(value); }                   \
+    void R(name) (void) { KF(release)(value);                   \
+                          KF(release)(KEYBOARD__LeftControl);   \
+                          KF(release)(KEYBOARD__LeftAlt); }
+
 /**                                       macros/KEYS__ALT_SHIFTED/description
  * Define the functions for a "alt+shifted" key (i.e. a key that sends
  * a "alt" and "shift" along with the keycode)
@@ -193,6 +219,11 @@ void layer_stack__push_pop_key(
 
 // ----------------------------------------------------------------------------
 
+void release_caps(void) {
+  usb__kb__set_key(false, KEYBOARD__CapsLock);
+  usb__kb__send_report();
+}
+
 /**                                   functions/KF(2_keys_capslock)/description
  * Press the given keycode, and also press "capslock" if this is the second
  * consecutive time this function has been called with `pressed == true`.
@@ -206,7 +237,13 @@ void KF(2_keys_capslock)(bool pressed, uint8_t keycode) {
         counter++;
         KF(press)(keycode);
         if (counter == 2 || usb__kb__read_led('C')) {
-            KF(toggle_capslock)();
+          #ifndef MACOS
+          KF(toggle_capslock)();
+          #else
+          usb__kb__set_key(true,  KEYBOARD__CapsLock);
+          usb__kb__send_report();
+          timer__schedule_cycles(10, release_caps);
+          #endif
         }
     }
     if (!pressed) {
@@ -214,7 +251,6 @@ void KF(2_keys_capslock)(bool pressed, uint8_t keycode) {
         KF(release)(keycode);
     }
 }
-
 // ----------------------------------------------------------------------------
 
 // --- default key definitions ------------------------------------------------
