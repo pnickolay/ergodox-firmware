@@ -67,7 +67,7 @@ enum action {
  *   `0` to `1024-1` = 2^10-1), it's safe to restrict `to` to 10 bits.
  */
 typedef struct {
-    uint8_t  action :  6;
+    uint8_t  action :  2;
     uint16_t to     : 10;
     union {
         uint8_t data;
@@ -390,44 +390,39 @@ static void write_queued(void) {
 
     } else if ( next_write.action == ACTION_COPY ) {
 
-        // if we're done with the current copy
-        // - checking for this here requires an extra iteration between a copy
-        //   being finished and the next operation being started; but it also
-        //   allows us not to make assumptions about the state of `to_extra`
-        //   when this function is called
+        // if we're done with the current copy, just pop and let the next
+        // iteration handle whatever comes next
         if (next_write.length == 0) {
             pop_to_write();
             pop_to_extra();
-        }
-
-        // copy 1 byte
-        write( next_write.to, eeprom__read( (void *) next_extra.from ) );
-        // prepare for the next
-        if (next_write.to < next_extra.from) {
-            ++(next_write.to);
-            ++(next_extra.from);
         } else {
-            --(next_write.to);
-            --(next_extra.from);
+            // copy 1 byte
+            write( next_write.to, eeprom__read( (void *) next_extra.from ) );
+            // prepare for the next
+            if (next_write.to < next_extra.from) {
+                ++(next_write.to);
+                ++(next_extra.from);
+            } else {
+                --(next_write.to);
+                --(next_extra.from);
+            }
+            --(next_write.length);
         }
-        --(next_write.length);
 
     } else if ( next_write.action == ACTION_FILL ) {
 
-        // if we're done with the current fill
-        // - checking for this here requires an extra iteration between a fill
-        //   being finished and the next operation being started; but it also
-        //   allows us not to make assumptions about the state of `to_extra`
-        //   when this function is called
+        // if we're done with the current fill, just pop and let the next
+        // iteration handle whatever comes next
         if (next_extra.length == 0) {
             pop_to_write();
             pop_to_extra();
+        } else {
+            // fill 1 byte
+            write( next_write.to, next_write.data );
+            // prepare for the next
+            ++(next_write.to);
+            --(next_extra.length);
         }
-
-        // fill 1 byte
-        write( next_write.to, next_write.data );
-        // prepare for the next
-        --(next_extra.length);
 
     } else {
         // if we get here, there was an invalid node: remove it

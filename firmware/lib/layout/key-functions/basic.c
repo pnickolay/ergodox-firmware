@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "../../../../firmware/lib/timer.h"
 #include "../../../../firmware/lib/usb.h"
 #include "../../../../firmware/lib/usb/usage-page/keyboard.h"
 #include "../key-functions.h"
@@ -38,7 +39,7 @@ uint8_t key_functions__recent_keys_length(void) {
 void key_functions__recent_keys_add(uint8_t keycode) {
   static uint16_t last_type_time = 0;
 
-  if (last_type_time + 1000 < timer__get_milliseconds())
+  if ((uint16_t)(timer__get_milliseconds() - last_type_time) > 1000)
     key_functions__recent_keys_reset();
   last_type_time = timer__get_milliseconds();
 

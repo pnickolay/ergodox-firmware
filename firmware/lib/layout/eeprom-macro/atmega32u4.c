@@ -856,11 +856,13 @@ uint8_t eeprom_macro__play( bool    pressed,
     void * k_location = find_key_action(&k);
     if (! k_location) return 1;  // macro does not exist
 
-    uint8_t length = eeprom__read(k_location+1);
-    length -= 2;
+    uint8_t total_length = eeprom__read(k_location+1);
+    if (total_length < 3) return 1;  // corrupted: too short for a valid macro
+    uint8_t length = total_length - 2;
     k_location += 2;
     while (length) {
         uint8_t read = read_key_action(k_location, &k);
+        if (read == 0 || read > length) break;  // prevent underflow
         kb__layout__exec_key_layer( k.pressed, k.layer, k.row, k.column );
         length -= read;
         k_location += read;

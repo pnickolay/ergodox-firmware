@@ -40,6 +40,10 @@ extern uint8_t mouse_buttons;
 int8_t usb_mouse_send(int8_t x, int8_t y, int8_t wheel_v, int8_t wheel_h, uint8_t buttons);
 void usb_mouse_buttons(uint8_t buttons);
 
+// consumer control (media keys)
+extern uint16_t consumer_key;
+int8_t usb_consumer_send(void);
+
 // ----------------------------------------------------------------------------
 
 // Everything below this point is only intended for usb_serial.c
@@ -145,6 +149,11 @@ void usb_mouse_buttons(uint8_t buttons);
 #define MOUSE_ENDPOINT		2
 #define MOUSE_SIZE		8
 #define MOUSE_BUFFER		EP_DOUBLE_BUFFER
+
+// consumer control (media keys)
+#define CONSUMER_ENDPOINT	4
+#define CONSUMER_SIZE		2
+#define CONSUMER_BUFFER		EP_DOUBLE_BUFFER
 
 #endif
 #endif

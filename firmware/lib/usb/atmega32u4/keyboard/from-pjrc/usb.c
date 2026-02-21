@@ -118,7 +118,7 @@ static const uint8_t PROGMEM endpoint_config_table[] = {
 #else
         0,                                                            // 3
 #endif
-	0,                                                                  // 4
+	1, EP_TYPE_INTERRUPT_IN,  EP_SIZE(CONSUMER_SIZE) | CONSUMER_BUFFER,   // 4
 };
 
 
@@ -281,6 +281,21 @@ static const uint8_t PROGMEM keyboard2_hid_report_desc[] = {
 };
 #endif
 
+// Consumer Control (media keys) - single 16-bit usage code
+static const uint8_t PROGMEM consumer_hid_report_desc[] = {
+        0x05, 0x0C,                     // Usage Page (Consumer),
+        0x09, 0x01,                     // Usage (Consumer Control),
+        0xA1, 0x01,                     // Collection (Application),
+        0x15, 0x00,                     //   Logical Minimum (0),
+        0x26, 0xFF, 0x03,               //   Logical Maximum (1023),
+        0x19, 0x00,                     //   Usage Minimum (0),
+        0x2A, 0xFF, 0x03,               //   Usage Maximum (1023),
+        0x75, 0x10,                     //   Report Size (16),
+        0x95, 0x01,                     //   Report Count (1),
+        0x81, 0x00,                     //   Input (Data, Array, Absolute),
+        0xC0                            // End Collection
+};
+
 #define KBD_HID_DESC_NUM                0
 #define KBD_HID_DESC_OFFSET             (9+(9+9+7)*KBD_HID_DESC_NUM+9)
 
@@ -298,7 +313,11 @@ static const uint8_t PROGMEM keyboard2_hid_report_desc[] = {
 #   define KBD2_HID_DESC_NUM            (MOUSE_HID_DESC_NUM + 0)
 #endif
 
-#define NUM_INTERFACES                  (KBD2_HID_DESC_NUM + 1)
+#define CONSUMER_HID_DESC_NUM           (KBD2_HID_DESC_NUM + 1)
+#define CONSUMER_HID_DESC_OFFSET        (9+(9+9+7)*CONSUMER_HID_DESC_NUM+9)
+#define CONSUMER_INTERFACE              CONSUMER_HID_DESC_NUM
+
+#define NUM_INTERFACES                  (CONSUMER_HID_DESC_NUM + 1)
 #define CONFIG1_DESC_SIZE               (9+(9+9+7)*NUM_INTERFACES)
 
 static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
@@ -402,6 +421,33 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	KBD2_SIZE, 0,				// wMaxPacketSize
 	1,					// bInterval
 #endif
+
+	// Consumer Control interface descriptor
+	9,					// bLength
+	4,					// bDescriptorType
+	CONSUMER_INTERFACE,			// bInterfaceNumber
+	0,					// bAlternateSetting
+	1,					// bNumEndpoints
+	0x03,					// bInterfaceClass (0x03 = HID)
+	0x00,					// bInterfaceSubClass
+	0x00,					// bInterfaceProtocol
+	0,					// iInterface
+	// HID descriptor
+	9,					// bLength
+	0x21,					// bDescriptorType
+	0x11, 0x01,				// bcdHID
+	0,					// bCountryCode
+	1,					// bNumDescriptors
+	0x22,					// bDescriptorType
+	sizeof(consumer_hid_report_desc),	// wDescriptorLength
+	0,
+	// endpoint descriptor
+	7,					// bLength
+	5,					// bDescriptorType
+	CONSUMER_ENDPOINT | 0x80,		// bEndpointAddress
+	0x03,					// bmAttributes (0x03=intr)
+	CONSUMER_SIZE, 0,			// wMaxPacketSize
+	10,					// bInterval
 };
 
 // If you're desperate for a little extra code memory, these strings
@@ -451,6 +497,9 @@ static const struct descriptor_list_struct {
 	{0x2100, KBD2_INTERFACE, config1_descriptor+KBD2_HID_DESC_OFFSET, 9},
 	{0x2200, KBD2_INTERFACE, keyboard2_hid_report_desc, sizeof(keyboard2_hid_report_desc)},
 #endif
+	// Consumer Control descriptors
+	{0x2100, CONSUMER_INTERFACE, config1_descriptor+CONSUMER_HID_DESC_OFFSET, 9},
+	{0x2200, CONSUMER_INTERFACE, consumer_hid_report_desc, sizeof(consumer_hid_report_desc)},
         // STRING descriptors
 	{0x0300, 0x0000, (const uint8_t *)&string0, 4},
 	{0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
@@ -494,6 +543,9 @@ volatile uint8_t keyboard_leds=0;
 // mouse
 uint8_t usb_mouse_protocol=1;
 uint8_t mouse_buttons = 0;
+
+// consumer control
+uint16_t consumer_key = 0;
 
 /**************************************************************************
  *
@@ -603,6 +655,31 @@ int8_t usb_mouse_send(int8_t x, int8_t y, int8_t wheel_v, int8_t wheel_h, uint8_
 void usb_mouse_buttons(uint8_t buttons)
 {
   usb_mouse_send(0, 0, 0, 0, buttons);
+}
+
+int8_t usb_consumer_send(void)
+{
+	uint8_t intr_state, timeout;
+
+	if (!usb_configuration) return -1;
+	intr_state = SREG;
+	cli();
+	UENUM = CONSUMER_ENDPOINT;
+	timeout = UDFNUML + 50;
+	while (1) {
+		if (UEINTX & (1<<RWAL)) break;
+		SREG = intr_state;
+		if (!usb_configuration) return -1;
+		if (UDFNUML == timeout) return -1;
+		intr_state = SREG;
+		cli();
+		UENUM = CONSUMER_ENDPOINT;
+	}
+	UEDATX = consumer_key & 0xFF;
+	UEDATX = (consumer_key >> 8) & 0xFF;
+	UEINTX = 0x3A;
+	SREG = intr_state;
+	return 0;
 }
 
 /**************************************************************************
@@ -890,6 +967,23 @@ ISR(USB_COM_vect)
 			}
 		}
 #endif
+		if (wIndex == CONSUMER_INTERFACE) {
+			if (bmRequestType == 0xA1) {
+				if (bRequest == HID_GET_REPORT) {
+					usb_wait_in_ready();
+					UEDATX = consumer_key & 0xFF;
+					UEDATX = (consumer_key >> 8) & 0xFF;
+					usb_send_in();
+					return;
+				}
+			}
+			if (bmRequestType == 0x21) {
+				if (bRequest == HID_SET_IDLE) {
+					usb_send_in();
+					return;
+				}
+			}
+		}
 	}
 	UECONX = (1<<STALLRQ) | (1<<EPEN);	// stall
 }

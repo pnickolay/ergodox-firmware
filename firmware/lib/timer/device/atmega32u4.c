@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <avr/interrupt.h>
 #include <avr/io.h>
+#include <util/atomic.h>
 #include "../../timer.h"
 
 // ----------------------------------------------------------------------------
@@ -46,11 +47,19 @@ uint8_t timer__init(void) {
 }
 
 uint32_t timer__get_hardware_ticks(void) {
-    return hardware_ticks.counter;
+    uint32_t val;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        val = hardware_ticks.counter;
+    }
+    return val;
 }
 
 uint16_t timer__get_milliseconds(void) {
-    return milliseconds.counter;
+    uint16_t val;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        val = milliseconds.counter;
+    }
+    return val;
 }
 
 ISR(TIMER0_COMPA_vect) {

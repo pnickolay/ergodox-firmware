@@ -58,6 +58,17 @@
     void R(name) (void) { KF(release)(value);                   \
                           KF(release)(KEYBOARD__LeftAlt); }
 
+/**                                  macros/KEYS__CONSUMER/description
+ * Define the functions for a consumer control key (e.g. media keys).
+ * Sends a 16-bit USB HID Consumer usage code via its own HID endpoint.
+ * These are recognized natively by macOS/Windows/Linux for media control.
+ *
+ * Needed by ".../lib/layout/keys.h"
+ */
+#define  KEYS__CONSUMER(name, usage_code)               \
+    void P(name) (void) { usb__consumer__press(usage_code); }  \
+    void R(name) (void) { usb__consumer__release(); }
+
 /**                                       macros/KEYS__GUI/description
  * Define the functions for a "GUI" key (i.e. a key that sends
  * a "GUI" along with the keycode)
@@ -163,7 +174,7 @@
  */
 
 void layer_stack__push_pop_sticky(bool pressed, uint8_t layer_id) {
-    static int press_count[10] = {0};
+    static uint8_t press_count[10] = {0};
     if (pressed) {
       ++press_count[layer_id];
       if (press_count[layer_id] == 2)
@@ -188,7 +199,7 @@ void layer_stack__push_pop_key(
    } else {
      layer_stack__pop_id(layer_id);
      if (last_keypresses + 1 == timer__get_keypresses() &&
-         last_time + 500 > timer__get_milliseconds()) {
+         (uint16_t)(timer__get_milliseconds() - last_time) < 500) {
        keyf[0]();
        usb__kb__send_report();
        keyf[1]();

@@ -44,6 +44,11 @@ uint8_t usb__kb__send_report (void);
 void usb__m__send(int8_t x, int8_t y, int8_t wheel_v, int8_t wheel_h, uint8_t buttons);
 void usb__m__buttons(uint8_t buttons);
 
+// --- consumer control (media keys) ---
+
+uint8_t usb__consumer__press  (uint16_t usage_code);
+uint8_t usb__consumer__release(void);
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 #endif  // ERGODOX_FIRMWARE__FIRMWARE__LIB__USB__H

@@ -232,7 +232,7 @@ void key_functions__type_string(const char * string) {
                                                                 break;  // >
                 case 0x3F: shifted = true;
                            keycode = KEYBOARD__Slash_Question;  break;  // ?
-                case 0x4D: shifted = true;
+                case 0x40: shifted = true;
                            keycode = KEYBOARD__2_At;            break;  // @
                 // ... uppercase letters
                 case 0x5B: keycode = KEYBOARD__LeftBracket_LeftBrace;

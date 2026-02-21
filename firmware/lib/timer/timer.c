@@ -203,6 +203,7 @@ void timer___tick_cycles(void) {
         if (cycles.scheduled.data[i].ticks == 0) {
             (*cycles.scheduled.data[i].function)();
             pop(&cycles.scheduled, i);
+            i--;  // re-examine this index after shift-down
         } else {
             cycles.scheduled.data[i].ticks--;
         }
@@ -215,6 +216,7 @@ void timer___tick_keypresses(void) {
         if (keypresses.scheduled.data[i].ticks == 0) {
             (*keypresses.scheduled.data[i].function)();
             pop(&keypresses.scheduled, i);
+            i--;  // re-examine this index after shift-down
         } else {
             keypresses.scheduled.data[i].ticks--;
         }

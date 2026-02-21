@@ -102,7 +102,7 @@ void kb__led__all_set(float n) {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 void kb__led__state__power_on(void) {
-    kb__led__all_set( OPT__LED_BRIGHTNESS / 10 );
+    kb__led__all_set( OPT__LED_BRIGHTNESS / 10.0 );
     kb__led__all_on();
 }
 

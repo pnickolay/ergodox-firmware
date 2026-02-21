@@ -69,6 +69,8 @@
 
 // ----------------------------------------------------------------------------
 
+static bool mcp23018__initialized = false;
+
 /**                                        functions/mcp23018__init/description
  * Initialize the MCP23018
  *
@@ -89,14 +91,19 @@ uint8_t mcp23018__init(void) {
     // - driving : output : 0
     twi__start();
     ret = twi__send(TWI_ADDR_WRITE);
-    if (ret) goto out;  // make sure we got an ACK
-    twi__send(IODIRA);
+    if (ret) goto out;
+    ret = twi__send(IODIRA);
+    if (ret) goto out;
     #if OPT__MCP23018__DRIVE_ROWS
-        twi__send(0b11111111);  // IODIRA
-        twi__send(0b11000000);  // IODIRB
+        ret = twi__send(0b11111111);  // IODIRA
+        if (ret) goto out;
+        ret = twi__send(0b11000000);  // IODIRB
+        if (ret) goto out;
     #elif OPT__MCP23018__DRIVE_COLUMNS
-        twi__send(0b10000000);  // IODIRA
-        twi__send(0b11111111);  // IODIRB
+        ret = twi__send(0b10000000);  // IODIRA
+        if (ret) goto out;
+        ret = twi__send(0b11111111);  // IODIRB
+        if (ret) goto out;
     #endif
     twi__stop();
 
@@ -106,14 +113,19 @@ uint8_t mcp23018__init(void) {
     // - driving : off : 0
     twi__start();
     ret = twi__send(TWI_ADDR_WRITE);
-    if (ret) goto out;  // make sure we got an ACK
-    twi__send(GPPUA);
+    if (ret) goto out;
+    ret = twi__send(GPPUA);
+    if (ret) goto out;
     #if OPT__MCP23018__DRIVE_ROWS
-        twi__send(0b11111111);  // GPPUA
-        twi__send(0b11000000);  // GPPUB
+        ret = twi__send(0b11111111);  // GPPUA
+        if (ret) goto out;
+        ret = twi__send(0b11000000);  // GPPUB
+        if (ret) goto out;
     #elif OPT__MCP23018__DRIVE_COLUMNS
-        twi__send(0b10000000);  // GPPUA
-        twi__send(0b11111111);  // GPPUB
+        ret = twi__send(0b10000000);  // GPPUA
+        if (ret) goto out;
+        ret = twi__send(0b11111111);  // GPPUB
+        if (ret) goto out;
     #endif
     twi__stop();
 
@@ -123,13 +135,16 @@ uint8_t mcp23018__init(void) {
     // - driving : hi-Z : 1
     twi__start();
     ret = twi__send(TWI_ADDR_WRITE);
-    if (ret) goto out;  // make sure we got an ACK
-    twi__send(OLATA);
-    twi__send(0b11111111);  //OLATA
-    twi__send(0b11111111);  //OLATB
+    if (ret) goto out;
+    ret = twi__send(OLATA);
+    if (ret) goto out;
+    ret = twi__send(0b11111111);  //OLATA
+    if (ret) goto out;
+    ret = twi__send(0b11111111);  //OLATB
 
 out:
     twi__stop();
+    if (!ret) mcp23018__initialized = true;
     return ret;
 }
 
@@ -147,11 +162,11 @@ out:
 uint8_t mcp23018__update_matrix(bool matrix[OPT__KB__ROWS][OPT__KB__COLUMNS]) {
     uint8_t ret, data;
 
-    // initialize things, just to make sure
-    // - it's not appreciably faster to skip this, and it takes care of the
-    //   case when the i/o expander isn't plugged in during the first
-    //   init()
-    ret = mcp23018__init();
+    // re-initialize only if a previous transaction failed or first time
+    if (!mcp23018__initialized)
+        ret = mcp23018__init();
+    else
+        ret = 0;
 
     // if there was an error
     if (ret) {
@@ -165,23 +180,25 @@ uint8_t mcp23018__update_matrix(bool matrix[OPT__KB__ROWS][OPT__KB__COLUMNS]) {
 
     // update our part of the matrix ..........................................
 
+    #define  TWI_CHECK(call)  do { ret = (call); if (ret) goto twi_err; } while(0)
+
     #if OPT__MCP23018__DRIVE_ROWS
         for (uint8_t row=0; row<=5; row++) {
             // set active row low  : 0
             // set other rows hi-Z : 1
-            twi__start();
-            twi__send(TWI_ADDR_WRITE);
-            twi__send(GPIOB);
-            twi__send( 0xFF & ~(1<<(5-row)) );
+            TWI_CHECK( twi__start() );
+            TWI_CHECK( twi__send(TWI_ADDR_WRITE) );
+            TWI_CHECK( twi__send(GPIOB) );
+            TWI_CHECK( twi__send( 0xFF & ~(1<<(5-row)) ) );
             twi__stop();
 
             // read column data
-            twi__start();
-            twi__send(TWI_ADDR_WRITE);
-            twi__send(GPIOA);
-            twi__start();
-            twi__send(TWI_ADDR_READ);
-            twi__read(&data);
+            TWI_CHECK( twi__start() );
+            TWI_CHECK( twi__send(TWI_ADDR_WRITE) );
+            TWI_CHECK( twi__send(GPIOA) );
+            TWI_CHECK( twi__start() );
+            TWI_CHECK( twi__send(TWI_ADDR_READ) );
+            TWI_CHECK( twi__read(&data) );
             twi__stop();
 
             // update matrix
@@ -201,19 +218,19 @@ uint8_t mcp23018__update_matrix(bool matrix[OPT__KB__ROWS][OPT__KB__COLUMNS]) {
         for (uint8_t col=0; col<=6; col++) {
             // set active column low  : 0
             // set other columns hi-Z : 1
-            twi__start();
-            twi__send(TWI_ADDR_WRITE);
-            twi__send(GPIOA);
-            twi__send( 0xFF & ~(1<<col) );
+            TWI_CHECK( twi__start() );
+            TWI_CHECK( twi__send(TWI_ADDR_WRITE) );
+            TWI_CHECK( twi__send(GPIOA) );
+            TWI_CHECK( twi__send( 0xFF & ~(1<<col) ) );
             twi__stop();
 
             // read row data
-            twi__start();
-            twi__send(TWI_ADDR_WRITE);
-            twi__send(GPIOB);
-            twi__start();
-            twi__send(TWI_ADDR_READ);
-            twi__read(&data);
+            TWI_CHECK( twi__start() );
+            TWI_CHECK( twi__send(TWI_ADDR_WRITE) );
+            TWI_CHECK( twi__send(GPIOB) );
+            TWI_CHECK( twi__start() );
+            TWI_CHECK( twi__send(TWI_ADDR_READ) );
+            TWI_CHECK( twi__read(&data) );
             twi__stop();
 
             // update matrix
@@ -231,8 +248,18 @@ uint8_t mcp23018__update_matrix(bool matrix[OPT__KB__ROWS][OPT__KB__COLUMNS]) {
 
     #endif
 
+    #undef TWI_CHECK
+
     // /update our part of the matrix .........................................
 
-    return ret;  // success
+    return 0;  // success
+
+twi_err:
+    twi__stop();
+    mcp23018__initialized = false;
+    for (uint8_t row=0; row<=5; row++)
+        for (uint8_t col=0; col<=6; col++)
+            matrix[row][col] = 0;
+    return ret;
 }
 
