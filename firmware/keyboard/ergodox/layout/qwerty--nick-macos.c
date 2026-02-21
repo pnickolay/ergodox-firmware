@@ -73,10 +73,10 @@ KEYS__DEFAULT( volU, KEYBOARD__VolumeUp );
 KEYS__DEFAULT( volD, KEYBOARD__VolumeDown );
 KEYS__DEFAULT( mute, KEYBOARD__Mute );
 
-KEYS__ALT( play, KEYBOARD__z_Z );
-KEYS__ALT( next, KEYBOARD__x_X );
-KEYS__ALT( prev, KEYBOARD__c_C );
-KEYS__ALT( media, KEYBOARD__a_A );
+KEYS__CONSUMER( play,  CONSUMER__Play_Pause );
+KEYS__CONSUMER( next,  CONSUMER__ScanNextTrack );
+KEYS__CONSUMER( prev,  CONSUMER__ScanPreviousTrack );
+KEYS__CONSUMER( media, CONSUMER__Stop );
 KEYS__ALT( thumbU, KEYBOARD__Period_GreaterThan );
 KEYS__ALT( thumbD, KEYBOARD__Comma_LessThan);
 
@@ -340,7 +340,7 @@ shL2kcap,        z,        x,        c,        v,        b,      lang,
               lpu1,        y,        u,        i,        o,        p,    brktL,
                            h,        j,        k,        l,  semicol,    quote,
               dash,        n,        m,    comma,   period,    slash, shR2kcap,
-                                arrowL,   arrowD,   arrowU,   arrowR,     lock,
+                                arrowL,   arrowD,   arrowU,   arrowR,    enter, // lock,
    hf1,      hf2,
    hf3,      nop,      nop,
     bs, shR2kcap,   lpupo2k ),
